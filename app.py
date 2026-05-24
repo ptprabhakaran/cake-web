@@ -39,7 +39,7 @@ def get_connection():
         return mysql.connector.connect(
             host=parsed.hostname,
             port=parsed.port or 3306,
-            user=parsed.username,
+            user=parsed.username or "root",
             password=parsed.password,
             database=parsed.path.lstrip("/")
         )
