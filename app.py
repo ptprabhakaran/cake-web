@@ -38,7 +38,7 @@ def get_connection():
         return mysql.connector.connect(
             host=parsed.hostname,
             port=parsed.port or 3306,
-            user=parsed.username,
+            user=parsed.username or "root",
             password=parsed.password,
             database=parsed.path.lstrip("/")
         )
@@ -50,7 +50,21 @@ def get_connection():
         database=os.getenv("MYSQL_DATABASE", "cake_theory")
     )
 
+def init_db():
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS orders (...)
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS order_items (...)
+        """)
+        connection.commit()
+    except Error as e:
+        print(f"Error creating tables: {e}")
 
+init_db()  # runs on startup
 def money(value):
     return Decimal(str(value or 0)).quantize(Decimal("0.01"))
 
