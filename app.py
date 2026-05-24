@@ -1,4 +1,6 @@
+
 import os
+import urllib.parse
 from decimal import Decimal
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -30,18 +32,24 @@ def load_env_file():
 load_env_file()
 
 
-def db_config():
-    return {
-        "host": os.getenv("MYSQL_HOST", "127.0.0.1"),
-        "port": int(os.getenv("MYSQL_PORT", "3306")),
-        "user": os.getenv("MYSQL_USER", "root"),
-        "password": os.getenv("MYSQL_PASSWORD", ""),
-        "database": os.getenv("MYSQL_DATABASE", "cake_theory"),
-    }
-
-
 def get_connection():
-    return mysql.connector.connect(**db_config())
+    url = os.getenv("MYSQL_URL")
+    if url:
+        parsed = urllib.parse.urlparse(url)
+        return mysql.connector.connect(
+            host=parsed.hostname,
+            port=parsed.port or 3306,
+            user=parsed.username,
+            password=parsed.password,
+            database=parsed.path.lstrip("/")
+        )
+    return mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST", "127.0.0.1"),
+        port=int(os.getenv("MYSQL_PORT", "3306")),
+        user=os.getenv("MYSQL_USER", "root"),
+        password=os.getenv("MYSQL_PASSWORD", ""),
+        database=os.getenv("MYSQL_DATABASE", "cake_theory")
+    )
 
 
 def money(value):
