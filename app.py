@@ -1,4 +1,3 @@
-
 import os
 import urllib.parse
 from decimal import Decimal
@@ -39,7 +38,7 @@ def get_connection():
         return mysql.connector.connect(
             host=parsed.hostname,
             port=parsed.port or 3306,
-            user=parsed.username or "root",
+            user=parsed.username,
             password=parsed.password,
             database=parsed.path.lstrip("/")
         )
