@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | The Cake Theory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@500;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <main class="admin-page">
+    <section class="admin-login" id="adminLogin">
+      <div class="admin-card">
+        <p class="eyebrow">Owner access</p>
+        <h1>The Cake Theory Admin</h1>
+        <p>Enter the shop passcode to manage products and local orders.</p>
+        <form id="adminLoginForm">
+          <input type="password" id="adminPassword" placeholder="Passcode" required>
+          <button class="checkout-button" type="submit">Open Admin</button>
+          <small class="admin-hint">Demo passcode: cake123</small>
+          <p class="admin-status" id="adminLoginStatus"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="admin-dashboard" id="adminDashboard" hidden>
+      <div class="admin-top">
+        <div>
+          <p class="eyebrow">Admin panel</p>
+          <h1>The Cake Theory</h1>
+        </div>
+        <div class="admin-actions">
+          <a class="checkout-button" href="index.html">View Website</a>
+          <button class="clear-cart-button" type="button" id="adminLogout">Logout</button>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <section class="admin-card">
+          <h2>Homepage Text</h2>
+          <form id="homeTextForm">
+            <label>
+              Heading
+              <input type="text" id="adminHomeTitle" placeholder="Fresh cakes made with love">
+            </label>
+            <label>
+              Paragraph
+              <textarea id="adminHomeBody" rows="4" placeholder="Write a short homepage message"></textarea>
+            </label>
+            <button class="sold-out-button" type="submit">Save Homepage Text</button>
+          </form>
+        </section>
+
+        <section class="admin-card">
+          <h2>Add New Product</h2>
+          <form id="newProductForm">
+            <label>
+              Product Name
+              <input type="text" id="newProductName" placeholder="Example: Lotus Biscoff Cake" required>
+            </label>
+            <label>
+              Category
+              <input type="text" id="newProductCategory" placeholder="Example: Chocolate Cakes" required>
+            </label>
+            <label>
+              Price
+              <input type="text" id="newProductPrice" placeholder="Rs. 1200.00" required>
+            </label>
+            <label>
+              Status
+              <select id="newProductStatus">
+                <option value="available">Available</option>
+                <option value="sold-out">Sold Out</option>
+              </select>
+            </label>
+            <label>
+              Ingredients
+              <textarea id="newProductIngredients" rows="3" placeholder="Sponge, cream, filling"></textarea>
+            </label>
+            <button class="sold-out-button" type="submit">Add Product</button>
+          </form>
+        </section>
+      </div>
+
+      <section class="admin-card">
+        <h2>Manage Products</h2>
+        <div class="admin-product-list" id="adminProductList"></div>
+      </section>
+
+      <section class="admin-card">
+        <h2>Customer Cart Orders</h2>
+        <div class="admin-orders" id="adminOrders"></div>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+  <noscript>
+    <section class="admin-card admin-noscript">
+      <h2>JavaScript is required</h2>
+      <p>Please enable JavaScript in Chrome to use the admin panel.</p>
+    </section>
+  </noscript>
+  <script src="/static/js/script.js"></script>
+</body>
+</html>
