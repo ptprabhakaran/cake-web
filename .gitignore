@@ -1,3 +1,4 @@
-.env
-__pycache__/
-*.pyc
+git add public/
+git add .
+git commit -m "Add public folder and static files"
+git push
