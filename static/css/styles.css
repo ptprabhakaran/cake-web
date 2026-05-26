@@ -1397,8 +1397,31 @@ details p {
   .product-detail,
   .cart-layout,
   .contact-form,
+  .admin-grid,
   .footer {
     grid-template-columns: 1fr;
+  }
+
+  .admin-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .admin-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-product-row,
+  .admin-order-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .admin-product-row button {
+    width: 100%;
   }
 
   .footer,
