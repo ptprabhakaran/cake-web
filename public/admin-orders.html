@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders | The Cake Theory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@500;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <main class="admin-page">
+    <section class="admin-login" id="adminLogin">
+      <div class="admin-card">
+        <p class="eyebrow">Owner access</p>
+        <h1>The Cake Theory Admin</h1>
+        <p>Enter the shop passcode to view orders.</p>
+        <form id="adminLoginForm">
+          <input type="password" id="adminPassword" placeholder="Passcode" required>
+          <button class="checkout-button" type="submit">Open Admin</button>
+          <small class="admin-hint">Demo passcode: cake123</small>
+          <p class="admin-status" id="adminLoginStatus"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="admin-dashboard" id="adminDashboard" hidden>
+      <div class="admin-top">
+        <div>
+          <p class="eyebrow">Admin panel</p>
+          <h1>Orders</h1>
+        </div>
+        <div class="admin-actions">
+          <a class="checkout-button" href="index.html">View Website</a>
+          <button class="clear-cart-button" type="button" id="adminLogout">Logout</button>
+        </div>
+      </div>
+
+      <nav class="admin-nav" style="display: flex; gap: 20px; border-bottom: 2px solid #f0f0f0; margin-bottom: 30px; padding-bottom: 10px;">
+        <a href="admin.html" style="font-weight: 700; color: #666; text-decoration: none; padding-bottom: 10px;">Dashboard (Products)</a>
+        <a href="admin-orders.html" style="font-weight: 800; color: #E11D48; text-decoration: none; border-bottom: 2px solid #E11D48; padding-bottom: 10px; margin-bottom: -12px;">Orders</a>
+      </nav>
+
+      <section class="admin-card">
+        <h2>Customer Cart Orders</h2>
+        <div class="admin-orders" id="adminOrders"></div>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/js/script.js"></script>
+</body>
+</html>
+
+

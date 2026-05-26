@@ -5,7 +5,7 @@ const mobileLinks = document.querySelectorAll(".mobile-menu a");
 const searchTrigger = document.querySelector(".search-trigger");
 const closeSearch = document.querySelector(".close-search");
 const addButtons = document.querySelectorAll(".add-to-cart");
-const cartCount = document.querySelector("#cartCount");
+const cartCounts = document.querySelectorAll("#cartCount");
 const toast = document.querySelector(".toast");
 const testimonialText = document.querySelector("#testimonialText");
 const testimonialAuthor = document.querySelector("#testimonialAuthor");
@@ -313,9 +313,60 @@ function getCartTotal(cart) {
 }
 
 function updateCartCount() {
-  if (!cartCount) return;
-  const totalItems = getCart().reduce((total, item) => total + item.quantity, 0);
-  cartCount.textContent = totalItems;
+  const cart = getCart();
+  const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+  const totalAmount = getCartTotal(cart);
+
+  cartCounts.forEach((count) => {
+    count.textContent = totalItems;
+  });
+
+  let stickyBar = document.querySelector("#stickyCartBar");
+  if (!stickyBar) {
+    stickyBar = document.createElement("div");
+    stickyBar.id = "stickyCartBar";
+    stickyBar.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 40px);
+      max-width: 440px;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      padding: 16px 20px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      z-index: 1000;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 16px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    `;
+    stickyBar.addEventListener("click", () => {
+      window.location.href = "cart.html";
+    });
+    document.body.appendChild(stickyBar);
+  }
+
+  const isHiddenPage = window.location.pathname.includes("cart.html") || window.location.pathname.includes("admin");
+  if (totalItems > 0 && !isHiddenPage) {
+    stickyBar.innerHTML = `
+      <span>₹${totalAmount} <span style="font-weight: 500; opacity: 0.8; margin: 0 6px;">|</span> ${totalItems} item${totalItems > 1 ? "s" : ""}</span>
+      <span style="display: flex; align-items: center; gap: 8px;">View Cart <span style="font-size: 20px; line-height: 1;">&rarr;</span></span>
+    `;
+    stickyBar.style.opacity = "1";
+    stickyBar.style.transform = "translateX(-50%) translateY(0)";
+    stickyBar.style.pointerEvents = "auto";
+  } else {
+    stickyBar.style.opacity = "0";
+    stickyBar.style.transform = "translateX(-50%) translateY(20px)";
+    stickyBar.style.pointerEvents = "none";
+  }
 }
 
 function showToast(message) {
@@ -646,11 +697,60 @@ if (checkoutForm) {
         throw new Error(result.error || "Could not place order.");
       }
 
-      saveCart([]);
-      updateCartCount();
-      renderCartPage();
-      checkoutStatus.textContent = `Order placed successfully. Order ID: ${result.order_id}`;
-      showToast("Order placed successfully.");
+      checkoutStatus.textContent = "Order created. Opening payment gateway...";
+
+      const totalAmountRupees = Number(result.total);
+      const options = {
+        key: "rzp_test_Su2xzUKeu8wcw0", // User's active Razorpay Test Key ID
+        amount: Math.round(totalAmountRupees * 100), // Amount in paise
+        currency: "INR",
+        name: "The Cake Theory",
+        description: `Order #${result.order_id} Payment`,
+        handler: async function (paymentResponse) {
+          checkoutStatus.textContent = "Payment successful! Verifying...";
+          try {
+            const payResponse = await fetch(`${API_BASE_URL}/api/orders/pay`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                order_id: result.order_id,
+                payment_id: paymentResponse.razorpay_payment_id
+              })
+            });
+            const payResult = await payResponse.json();
+            if (payResult.ok) {
+              saveCart([]);
+              updateCartCount();
+              renderCartPage();
+              checkoutForm.reset();
+              checkoutStatus.innerHTML = `<span style="color: #2e7d32; font-weight: bold; display: block; margin-top: 10px;">Order Placed & Paid Successfully! 🎉<br>Order ID: #${result.order_id}<br>Payment ID: ${paymentResponse.razorpay_payment_id}</span>`;
+              showToast("Payment successful!");
+            } else {
+              throw new Error(payResult.error || "Failed to update payment.");
+            }
+          } catch (payError) {
+            checkoutStatus.textContent = `Order placed (ID: #${result.order_id}), but payment confirmation failed: ${payError.message}`;
+          }
+        },
+        prefill: {
+          name: payload.customer.name,
+          contact: payload.customer.phone
+        },
+        theme: {
+          color: "#e88f9a" // Branding pink color matching the style of the website
+        },
+        modal: {
+          ondismiss: function () {
+            checkoutStatus.textContent = `Order placed (Unpaid). Order ID: #${result.order_id}. You can manage this order under the admin dashboard.`;
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+
     } catch (error) {
       checkoutStatus.textContent = `Order failed: ${error.message}. Make sure the Python server and MySQL are running.`;
     }
@@ -720,31 +820,36 @@ function renderAdminPage() {
   const productList = document.querySelector("#adminProductList");
   const orders = getCart();
 
-  document.querySelector("#adminHomeTitle").value = adminData.homeTitle || "";
-  document.querySelector("#adminHomeBody").value = adminData.homeBody || "";
+  const homeTitle = document.querySelector("#adminHomeTitle");
+  if (homeTitle) homeTitle.value = adminData.homeTitle || "";
+  
+  const homeBody = document.querySelector("#adminHomeBody");
+  if (homeBody) homeBody.value = adminData.homeBody || "";
 
-  productList.innerHTML = Object.entries(allProducts)
-    .map(([slug, product]) => `
-      <form class="admin-product-row" data-admin-product="${slug}">
-        <div>
-          <h3>${product.title}</h3>
-          <p>${product.category}</p>
-        </div>
-        <label>
-          Price
-          <input name="price" value="${product.price || ""}">
-        </label>
-        <label>
-          Status
-          <select name="status">
-            <option value="available" ${product.status !== "sold-out" ? "selected" : ""}>Available</option>
-            <option value="sold-out" ${product.status === "sold-out" ? "selected" : ""}>Sold Out</option>
-          </select>
-        </label>
-        <button class="sold-out-button" type="submit">Save</button>
-      </form>
-    `)
-    .join("");
+  if (productList) {
+    productList.innerHTML = Object.entries(allProducts)
+      .map(([slug, product]) => `
+        <form class="admin-product-row" data-admin-product="${slug}">
+          <div>
+            <h3>${product.title}</h3>
+            <p>${product.category}</p>
+          </div>
+          <label>
+            Price
+            <input name="price" value="${product.price || ""}">
+          </label>
+          <label>
+            Status
+            <select name="status">
+              <option value="available" ${product.status !== "sold-out" ? "selected" : ""}>Available</option>
+              <option value="sold-out" ${product.status === "sold-out" ? "selected" : ""}>Sold Out</option>
+            </select>
+          </label>
+          <button class="sold-out-button" type="submit">Save</button>
+        </form>
+      `)
+      .join("");
+  }
 
   document.querySelectorAll("[data-admin-product]").forEach((form) => {
     form.addEventListener("submit", (event) => {
@@ -765,26 +870,28 @@ function renderAdminPage() {
   });
 
   const orderList = document.querySelector("#adminOrders");
-  orderList.innerHTML = orders.length
-    ? orders.map((item) => `
-      <div class="admin-order-row">
-        <div>
-          <h3>${item.title}</h3>
-          <p>${item.size} | ${item.option}</p>
+  if (orderList) {
+    orderList.innerHTML = orders.length
+      ? orders.map((item) => `
+        <div class="admin-order-row">
+          <div>
+            <h3>${item.title}</h3>
+            <p>${item.size} | ${item.option}</p>
+          </div>
+          <p>Qty: ${item.quantity}</p>
+          <p>${item.price}</p>
+          <select data-order-status="${item.id}">
+            <option>Pending</option>
+            <option>Accepted</option>
+            <option>Rejected</option>
+            <option>Paid</option>
+          </select>
         </div>
-        <p>Qty: ${item.quantity}</p>
-        <p>${item.price}</p>
-        <select data-order-status="${item.id}">
-          <option>Pending</option>
-          <option>Accepted</option>
-          <option>Rejected</option>
-          <option>Paid</option>
-        </select>
-      </div>
-    `).join("")
-    : `<p>No local cart orders yet.</p>`;
+      `).join("")
+      : `<p>No local cart orders yet.</p>`;
 
-  loadBackendOrders(orderList);
+    loadBackendOrders(orderList);
+  }
 }
 
 async function loadBackendOrders(orderList) {
@@ -800,18 +907,52 @@ async function loadBackendOrders(orderList) {
       return;
     }
 
-    orderList.innerHTML = result.orders.map((order) => `
-      <div class="admin-order-row">
-        <div>
-          <h3>Order #${order.id} - ${order.customer_name}</h3>
-          <p>${order.phone}</p>
-          <p>${order.address}</p>
+    orderList.innerHTML = result.orders.map((order) => {
+      const isPaid = order.payment_status === "paid";
+      const statusColor = isPaid ? "color: #10B981;" : "color: #EF4444;";
+      const statusBg = isPaid ? "background: #ecfdf5;" : "background: #fef2f2;";
+      
+      const itemsList = order.items.map(item => 
+        `<li style="margin-bottom: 6px;"><strong>${item.quantity}x</strong> ${item.product_name} <span style="color: #666; font-size: 0.85rem;">(${item.size}, ${item.option_type})</span> &mdash; Rs. ${item.unit_price}</li>`
+      ).join("");
+
+      return `
+      <div class="admin-order-row" style="display: flex; flex-direction: column; gap: 15px; padding: 20px; border: 1px solid #eee; border-radius: 12px; margin-bottom: 20px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+        
+        <div style="width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px;">
+          <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #111;">Order #${order.id} <br><span style="color: #666; font-size: 0.95rem; font-weight: 600;">${order.customer_name}</span></h3>
+          <div style="font-size: 1.1rem; background: #f8f9fa; padding: 6px 12px; border-radius: 8px; font-weight: 800; border: 1px solid #e9ecef;">Rs. ${order.total_amount}</div>
         </div>
-        <p>${order.items.length} items</p>
-        <p>Rs. ${order.total_amount}</p>
-        <p>${order.status} / ${order.payment_status}</p>
+
+        <div style="width: 100%; display: flex; flex-wrap: wrap; gap: 20px;">
+          <div style="flex: 1 1 250px;">
+            <p style="margin: 6px 0; font-size: 0.95rem; color: #333;"><strong>📞</strong> ${order.phone}</p>
+            <p style="margin: 6px 0; font-size: 0.95rem; color: #333; line-height: 1.4;"><strong>📍</strong> ${order.address}</p>
+            <p style="margin: 6px 0; font-size: 0.85rem; color: #888;">📅 ${order.created_at}</p>
+          </div>
+          
+          <div style="flex: 1 1 250px; background: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+              <strong style="font-size: 0.95rem; color: #444;">Payment:</strong> 
+              <span style="${statusColor} ${statusBg} padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 0.85rem;">${order.payment_status.toUpperCase()}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+              <strong style="font-size: 0.95rem; color: #444;">Status:</strong> 
+              <span style="font-size: 0.9rem; font-weight: 700; color: #555;">${order.status.toUpperCase()}</span>
+            </div>
+            ${order.notes ? `<div style="font-size: 0.85rem; color: #666; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #ddd; line-height: 1.5;">${order.notes.replace('Razorpay ID:', '<strong>Razorpay ID:</strong>')}</div>` : ''}
+          </div>
+        </div>
+
+        <div style="width: 100%; background: #fefefe; padding: 15px; border-radius: 10px; border: 1px solid #f0f0f0;">
+          <strong style="color: #111; display: block; margin-bottom: 10px; font-size: 0.95rem;">Order Items:</strong>
+          <ul style="margin: 0; padding-left: 20px; font-size: 0.95rem; color: #444; list-style-type: disc;">
+            ${itemsList}
+          </ul>
+        </div>
       </div>
-    `).join("");
+      `;
+    }).join("");
   } catch (error) {
     // Keep local cart-order preview visible when the backend is not running.
   }
@@ -852,7 +993,9 @@ addButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const product = button.closest(".product-card").dataset.name;
     cartItems += 1;
-    if (cartCount) cartCount.textContent = cartItems;
+    cartCounts.forEach((count) => {
+      count.textContent = cartItems;
+    });
     showToast(`${product} added to your cart.`);
   });
 });
@@ -886,3 +1029,4 @@ renderHomeText();
 renderAdminAddedProducts();
 renderAdminPage();
 updateCartCount();
+
