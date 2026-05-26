@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 from decimal import Decimal
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -16,13 +17,11 @@ def load_env_file():
     env_path = os.path.join(BASE_DIR, ".env")
     if not os.path.exists(env_path):
         return
-
     with open(env_path, "r", encoding="utf-8") as env_file:
         for line in env_file:
             line = line.strip()
             if not line or line.startswith("#") or "=" not in line:
                 continue
-
             key, value = line.split("=", 1)
             os.environ.setdefault(key.strip(), value.strip())
 
@@ -30,18 +29,68 @@ def load_env_file():
 load_env_file()
 
 
-def db_config():
-    return {
-        "host": os.getenv("MYSQL_HOST", "127.0.0.1"),
-        "port": int(os.getenv("MYSQL_PORT", "3306")),
-        "user": os.getenv("MYSQL_USER", "root"),
-        "password": os.getenv("MYSQL_PASSWORD", ""),
-        "database": os.getenv("MYSQL_DATABASE", "cake_theory"),
-    }
-
-
 def get_connection():
-    return mysql.connector.connect(**db_config())
+    url = os.getenv("MYSQL_URL")
+    if url:
+        parsed = urllib.parse.urlparse(url)
+        return mysql.connector.connect(
+            host=parsed.hostname,
+            port=parsed.port or 3306,
+            user=parsed.username or "root",
+            password=parsed.password or "",
+            database=parsed.path.lstrip("/")
+        )
+    return mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST", "127.0.0.1"),
+        port=int(os.getenv("MYSQL_PORT", "3306")),
+        user=os.getenv("MYSQL_USER", "root"),
+        password=os.getenv("MYSQL_PASSWORD", ""),
+        database=os.getenv("MYSQL_DATABASE", "railway")
+    )
+
+
+def init_db():
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS orders (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                customer_name VARCHAR(255),
+                phone VARCHAR(50),
+                address TEXT,
+                notes TEXT,
+                total_amount DECIMAL(10,2),
+                status VARCHAR(50) DEFAULT 'pending',
+                payment_status VARCHAR(50) DEFAULT 'unpaid',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS order_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                order_id INT,
+                product_slug VARCHAR(255),
+                product_name VARCHAR(255),
+                category VARCHAR(100),
+                size VARCHAR(100),
+                option_type VARCHAR(100),
+                message TEXT,
+                quantity INT,
+                unit_price DECIMAL(10,2),
+                line_total DECIMAL(10,2),
+                FOREIGN KEY (order_id) REFERENCES orders(id)
+            )
+        """)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("Tables ready")
+    except Error as e:
+        print(f"Error creating tables: {e}")
+
+
+init_db()
 
 
 def money(value):
@@ -88,13 +137,11 @@ def create_order():
     try:
         connection = get_connection()
         cursor = connection.cursor()
-
         cursor.execute(
             """
             INSERT INTO orders
               (customer_name, phone, address, notes, total_amount, status, payment_status)
-            VALUES
-              (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 customer.get("name"),
@@ -115,8 +162,7 @@ def create_order():
                 """
                 INSERT INTO order_items
                   (order_id, product_slug, product_name, category, size, option_type, message, quantity, unit_price, line_total)
-                VALUES
-                  (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     order_id,
@@ -152,8 +198,7 @@ def list_orders():
         cursor.execute(
             """
             SELECT id, customer_name, phone, address, notes, total_amount, status, payment_status, created_at
-            FROM orders
-            ORDER BY id DESC
+            FROM orders ORDER BY id DESC
             """
         )
         orders = cursor.fetchall()
@@ -162,11 +207,7 @@ def list_orders():
             order["total_amount"] = str(order["total_amount"])
             order["created_at"] = order["created_at"].isoformat(sep=" ", timespec="minutes")
             cursor.execute(
-                """
-                SELECT product_name, size, option_type, message, quantity, unit_price, line_total
-                FROM order_items
-                WHERE order_id = %s
-                """,
+                "SELECT product_name, size, option_type, message, quantity, unit_price, line_total FROM order_items WHERE order_id = %s",
                 (order["id"],),
             )
             order["items"] = cursor.fetchall()
