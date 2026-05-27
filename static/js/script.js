@@ -348,8 +348,12 @@ function getCartTotal(cart) {
 }
 
 function getMinimumDisplayPrice(product) {
-  const firstPricingOption = product.pricing?.[0] || product.price || "";
+  const firstPricingOption = getProductPricing(product)[0] || product.price || "";
   return formatPrice(parsePrice(firstPricingOption || product.price));
+}
+
+function getProductPricing(product) {
+  return product.pricing && product.pricing.length ? product.pricing : [product.price || "Rs. 0.00"];
 }
 
 function updateCartCount() {
@@ -523,6 +527,17 @@ function renderSizeChoices(target, items) {
   `;
 }
 
+function updateProductMainPriceFromSize() {
+  const priceTarget = document.querySelector("#productMainPrice");
+  if (!priceTarget || !activeProduct) return;
+
+  const selectedSize = document.querySelector("input[name='size']:checked");
+  const fallbackSelect = document.querySelector("#productSize");
+  const selectedValue = selectedSize?.value || fallbackSelect?.value || "";
+  const selectedPrice = parsePrice(selectedValue) || parsePrice(activeProduct.price);
+  priceTarget.textContent = formatPrice(selectedPrice);
+}
+
 function renderProductPage() {
   const title = document.querySelector("#productTitle");
   if (!title) return;
@@ -540,8 +555,19 @@ function renderProductPage() {
   document.querySelector("#productCategory").textContent = product.category;
   title.textContent = product.title;
   document.querySelector("#productMainPrice").textContent = getMinimumDisplayPrice(product);
-  renderSelectOptions(document.querySelector("#productSize"), product.pricing);
-  renderSizeChoices(document.querySelector("#productSizeChoices"), product.pricing);
+  const pricing = getProductPricing(product);
+  renderSelectOptions(document.querySelector("#productSize"), pricing);
+  const sizeChoices = document.querySelector("#productSizeChoices");
+  if (sizeChoices) {
+    if (product.category === "Mini Cakes") {
+      sizeChoices.hidden = true;
+      sizeChoices.innerHTML = "";
+    } else {
+      sizeChoices.hidden = false;
+      renderSizeChoices(sizeChoices, pricing);
+    }
+  }
+  updateProductMainPriceFromSize();
   renderList(document.querySelector("#productIngredients"), product.ingredients);
   const submitButton = document.querySelector(".sold-out-button");
   if (submitButton) {
@@ -587,6 +613,12 @@ document.querySelectorAll("[data-quantity]").forEach((button) => {
         ? currentValue + 1
         : Math.max(1, currentValue - 1);
   });
+});
+
+document.addEventListener("change", (event) => {
+  if (event.target.matches("input[name='size'], #productSize")) {
+    updateProductMainPriceFromSize();
+  }
 });
 
 const productOrderBox = document.querySelector(".product-order-box");
