@@ -39,6 +39,7 @@ const products = {
     title: "Strawberry Cake",
     category: "Classic Cakes",
     price: "Rs. 1,250.00",
+    image: "/static/assets/strawberry.jpg",
     description: "Soft sponge cake with strawberry cream and fruity layers.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Strawberry filling", "Whipped cream", "Fresh strawberry topping"]
@@ -47,6 +48,7 @@ const products = {
     title: "Blueberry Cake",
     category: "Classic Cakes",
     price: "Rs. 1,250.00",
+    image: "/static/assets/Blue-berry.jpg",
     description: "A light cream cake filled with blueberry compote and smooth frosting.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Blueberry compote", "Whipped cream", "Blueberry glaze"]
@@ -55,6 +57,7 @@ const products = {
     title: "Blackcurrant Cake",
     category: "Classic Cakes",
     price: "Rs. 1,250.00",
+    image: "/static/assets/blue-currant.jpeg",
     description: "Tangy blackcurrant filling paired with soft sponge and fresh cream.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Blackcurrant filling", "Fresh cream", "Fruit glaze"]
@@ -63,6 +66,7 @@ const products = {
     title: "Fresh Mango Cake",
     category: "Classic Cakes",
     price: "Rs. 1,350.00",
+    image: "/static/assets/fresh-mango.jpg",
     description: "Seasonal mango cake with fresh mango filling and soft cream layers.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Fresh mango", "Mango cream", "Whipped cream"]
@@ -71,6 +75,7 @@ const products = {
     title: "Fresh Pineapple Cake",
     category: "Classic Cakes",
     price: "Rs. 1,250.00",
+    image: "/static/assets/Pineapple.jpg",
     description: "Fresh pineapple filling with light cream and airy vanilla sponge.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Pineapple filling", "Fresh cream", "Pineapple garnish"]
@@ -79,6 +84,7 @@ const products = {
     title: "Seasonal Filling Cake",
     category: "Classic Cakes",
     price: "Rs. 1,350.00",
+    image: "/static/assets/season.png",
     description: "A custom seasonal fruit filling cake based on fresh availability.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Seasonal fruit filling", "Fresh cream", "Fruit garnish"]
@@ -87,6 +93,7 @@ const products = {
     title: "Chocolate Truffle Cake",
     category: "Chocolate Cakes",
     price: "Rs. 1,300.00",
+    image: "/static/assets/truffle.png",
     description: "Rich chocolate sponge layered with smooth ganache and truffle cream.",
     pricing: defaultCakePricing,
     ingredients: ["Chocolate sponge", "Chocolate ganache", "Truffle cream", "Chocolate curls"]
@@ -95,6 +102,7 @@ const products = {
     title: "KitKat Cake",
     category: "Chocolate Cakes",
     price: "Rs. 1,450.00",
+    image: "/static/assets/Kitkat.png",
     description: "Chocolate cream cake finished with KitKat bars and crunchy toppings.",
     pricing: defaultCakePricing,
     ingredients: ["Chocolate sponge", "Chocolate cream", "KitKat", "Chocolate drizzle"]
@@ -103,6 +111,7 @@ const products = {
     title: "Ferrero Rocher Cake",
     category: "Chocolate Cakes",
     price: "Rs. 1,650.00",
+    image: "/static/assets/Ferrero.jpg",
     description: "Hazelnut chocolate cake inspired by Ferrero Rocher flavours.",
     pricing: defaultCakePricing,
     ingredients: ["Chocolate sponge", "Hazelnut cream", "Chocolate ganache", "Roasted nuts"]
@@ -111,6 +120,7 @@ const products = {
     title: "Caramel Chocolate Cake",
     category: "Chocolate Cakes",
     price: "Rs. 1,400.00",
+    image: "/static/assets/caramel.jpg",
     description: "Chocolate sponge paired with caramel cream and a smooth caramel finish.",
     pricing: defaultCakePricing,
     ingredients: ["Chocolate sponge", "Caramel sauce", "Chocolate cream", "Caramel drizzle"]
@@ -119,6 +129,7 @@ const products = {
     title: "Choco Vanilla Cake",
     category: "Chocolate Cakes",
     price: "Rs. 1,250.00",
+    image: "/static/assets/choco.jpg",
     description: "Balanced chocolate and vanilla layers with smooth cream frosting.",
     pricing: defaultCakePricing,
     ingredients: ["Chocolate sponge", "Vanilla sponge", "Whipped cream", "Chocolate garnish"]
@@ -127,6 +138,7 @@ const products = {
     title: "Rasmalai Cake",
     category: "Fusion Flavors",
     price: "Rs. 1,450.00",
+    image: "/static/assets/rasmalai.jpg",
     description: "Indian dessert-inspired cake with rasmalai flavours and saffron notes.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Rasmalai milk", "Saffron cream", "Pistachio garnish"]
@@ -135,6 +147,7 @@ const products = {
     title: "Gulab Jamun Cake",
     category: "Fusion Flavors",
     price: "Rs. 1,450.00",
+    image: "/static/assets/gulab.jpg",
     description: "Cream cake layered with gulab jamun pieces and cardamom flavour.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Gulab jamun", "Cardamom cream", "Rose syrup"]
@@ -143,6 +156,7 @@ const products = {
     title: "Rosemilk Cake",
     category: "Fusion Flavors",
     price: "Rs. 1,350.00",
+    image: "/static/assets/rosemilk.jpg",
     description: "Soft rose-flavoured cake with light cream and floral sweetness.",
     pricing: defaultCakePricing,
     ingredients: ["Vanilla sponge", "Rose milk", "Rose cream", "Petal garnish"]
@@ -151,6 +165,7 @@ const products = {
     title: "Korean Cheese Bun",
     category: "Daily Bakes & Pastries",
     price: "Rs. 100.00",
+    image: "/static/assets/korean.jpg",
     description: "Soft bun filled with creamy cheese and savoury-sweet garlic notes.",
     pricing: ["1 nos - Rs. 100.00"],
     ingredients: ["Soft bun", "Cream cheese", "Garlic butter", "Herbs"]
@@ -159,6 +174,7 @@ const products = {
     title: "Bomboloni Classic Vanilla",
     category: "Daily Bakes & Pastries",
     price: "Rs. 100.00",
+    image: "/static/assets/bombolini.jpg",
     description: "Fluffy filled doughnut with classic vanilla cream.",
     pricing: ["1 nos - Rs. 100.00"],
     ingredients: ["Doughnut dough", "Vanilla cream", "Sugar dusting"]
@@ -167,6 +183,7 @@ const products = {
     title: "Bomboloni Chocolate Burst",
     category: "Daily Bakes & Pastries",
     price: "Rs. 110.00",
+    image: "/static/assets/bombolini.jpg",
     description: "Soft bomboloni filled with rich chocolate cream.",
     pricing: ["1 nos - Rs. 110.00"],
     ingredients: ["Doughnut dough", "Chocolate filling", "Cocoa dusting"]
@@ -175,6 +192,7 @@ const products = {
     title: "Assorted Filled Cupcake",
     category: "Daily Bakes & Pastries",
     price: "Rs. 70.00",
+    image: "/static/assets/cupcake.jpg",
     description: "A mixed cupcake box with creamy fillings and fresh toppings.",
     pricing: ["Starting from Rs. 70.00 each"],
     ingredients: ["Cupcake sponge", "Assorted fillings", "Buttercream", "Toppings"]
@@ -183,6 +201,7 @@ const products = {
     title: "Nutella Cookie Tin",
     category: "Brownies & Cookies",
     price: "Rs. 420.00",
+    image: "/static/assets/cookie.jpg",
     description: "Cookie tin packed with rich Nutella-filled cookies for gifting and snacking.",
     pricing: ["250 gm - Rs. 420.00", "500 gm - Rs. 750.00"],
     ingredients: ["Cookie dough", "Nutella", "Chocolate chips", "Butter"]
@@ -191,6 +210,7 @@ const products = {
     title: "Assorted Brownie",
     category: "Brownies & Cookies",
     price: "Rs. 800.00",
+    image: "/static/assets/brown.jpg",
     description: "A box of fudgy brownies in assorted flavours.",
     pricing: ["9 pcs - Rs. 800.00", "16 pcs - Rs. 1,000.00"],
     ingredients: ["Dark chocolate", "Butter", "Cocoa", "Assorted toppings"]
@@ -199,6 +219,7 @@ const products = {
     title: "Tea Cake",
     category: "Tea Cakes",
     price: "Rs. 300.00",
+    image: "/static/assets/tea.jpg",
     description: "Simple, soft tea cake made for coffee breaks and evening snacks.",
     pricing: ["1/2 kg - Rs. 300.00", "1 kg - Rs. 600.00"],
     ingredients: ["Flour", "Butter", "Sugar", "Vanilla"]
@@ -207,6 +228,7 @@ const products = {
     title: "Rainbow Cake",
     category: "Tea Cakes",
     price: "Rs. 300.00",
+    image: "/static/assets/Rainbow.jpg",
     description: "Colourful layered cake with a soft crumb and light cream.",
     pricing: ["1/2 kg - Rs. 300.00", "1 kg - Rs. 600.00"],
     ingredients: ["Vanilla sponge", "Food colours", "Whipped cream", "Sprinkles"]
@@ -215,6 +237,7 @@ const products = {
     title: "Bento",
     category: "Mini Cakes",
     price: "Rs. 300.00",
+    image: "/static/assets/bento.png",
     description: "Mini celebration cakes for small surprises and personal gifting.",
     pricing: ["Base price - Rs. 300.00", "Customisation charges extra"],
     ingredients: ["Soft sponge", "Whipped cream", "Custom filling", "Decorative frosting"]
