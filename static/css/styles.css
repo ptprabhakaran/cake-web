@@ -1655,7 +1655,7 @@ details p {
   }
 
   .order-category {
-    max-height: min(470px, 72vh);
+    max-height: none;
   }
 
   .order-category-title {
@@ -1666,10 +1666,8 @@ details p {
   }
 
   .order-item-list {
-    max-height: min(380px, 58vh);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
+    max-height: none;
+    overflow-y: visible;
   }
 
   .mobile-menu details[open] {
