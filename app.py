@@ -324,6 +324,8 @@ def public_files(path):
     file_path = os.path.join(PUBLIC_DIR, path)
     if os.path.isfile(file_path):
         return send_from_directory(PUBLIC_DIR, path)
+    if path.endswith(".html"):
+        return send_from_directory(PUBLIC_DIR, "product.html")
     return send_from_directory(PUBLIC_DIR, "index.html")
 
 

@@ -1,11 +1,9 @@
-const body = document.body;
+﻿const body = document.body;
 const menuToggle = document.querySelector(".menu-toggle");
 const closeMenu = document.querySelector(".close-menu");
 const mobileLinks = document.querySelectorAll(".mobile-menu a");
-const searchTrigger = document.querySelector(".search-trigger");
-const closeSearch = document.querySelector(".close-search");
 const addButtons = document.querySelectorAll(".add-to-cart");
-const cartCounts = document.querySelectorAll("#cartCount");
+const cartCounts = document.querySelectorAll(".cart-count");
 const toast = document.querySelector(".toast");
 const testimonialText = document.querySelector("#testimonialText");
 const testimonialAuthor = document.querySelector("#testimonialAuthor");
@@ -15,8 +13,8 @@ const formStatus = document.querySelector(".form-status");
 const ADMIN_PASSCODE = "cake123";
 const API_BASE_URL = window.location.protocol === "file:" ? "http://127.0.0.1:5000" : "";
 
-const defaultCakePricing = ["500g - ₹550", "1kg - ₹950", "1.5kg - ₹1,400", "2kg - ₹1,850"];
-const defaultTreatPricing = ["Single piece - ₹120", "Box of 4 - ₹420", "Box of 6 - ₹620", "Party box - custom quote"];
+const defaultCakePricing = ["500g - Rs. 550", "1kg - Rs. 950", "1.5kg - Rs. 1,400", "2kg - Rs. 1,850"];
+const defaultTreatPricing = ["Single piece - Rs. 120", "Box of 4 - Rs. 420", "Box of 6 - Rs. 620", "Party box - custom quote"];
 
 const products = {
   "black-forest": {
@@ -257,6 +255,20 @@ function getAllProducts() {
   return merged;
 }
 
+function getProductPageUrl(slug) {
+  return `${slug}.html`;
+}
+
+function getProductSlugFromLocation() {
+  const params = new URLSearchParams(window.location.search);
+  const querySlug = params.get("item");
+  if (querySlug) return querySlug;
+
+  const fileName = window.location.pathname.split("/").pop() || "";
+  const fileSlug = fileName.replace(/\.html$/i, "");
+  return fileSlug && fileSlug !== "product" ? fileSlug : "black-forest";
+}
+
 const testimonials = [
   {
     text: "The cake looked beautiful and tasted even better. The finish was elegant, and delivery was right on time.",
@@ -312,6 +324,11 @@ function getCartTotal(cart) {
   }, 0);
 }
 
+function getMinimumDisplayPrice(product) {
+  const firstPricingOption = product.pricing?.[0] || product.price || "";
+  return formatPrice(parsePrice(firstPricingOption || product.price));
+}
+
 function updateCartCount() {
   const cart = getCart();
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
@@ -356,7 +373,7 @@ function updateCartCount() {
   const isHiddenPage = window.location.pathname.includes("cart.html") || window.location.pathname.includes("admin");
   if (totalItems > 0 && !isHiddenPage) {
     stickyBar.innerHTML = `
-      <span>₹${totalAmount} <span style="font-weight: 500; opacity: 0.8; margin: 0 6px;">|</span> ${totalItems} item${totalItems > 1 ? "s" : ""}</span>
+      <span>${formatPrice(totalAmount)} <span style="font-weight: 500; opacity: 0.8; margin: 0 6px;">|</span> ${totalItems} item${totalItems > 1 ? "s" : ""}</span>
       <span style="display: flex; align-items: center; gap: 8px;">View Cart <span style="font-size: 20px; line-height: 1;">&rarr;</span></span>
     `;
     stickyBar.style.opacity = "1";
@@ -396,6 +413,75 @@ function renderSelectOptions(target, items) {
   target.innerHTML = items.map((item) => `<option>${item}</option>`).join("");
 }
 
+function getPricingLines(value) {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function splitPricingLine(line) {
+  const text = String(line || "").trim();
+  const parts = text.split("-");
+
+  if (parts.length < 2) {
+    return { size: "", price: text };
+  }
+
+  return {
+    size: parts.shift().trim(),
+    price: parts.join("-").trim()
+  };
+}
+
+function renderAdminPricingRow(line = "") {
+  const pricing = splitPricingLine(line);
+
+  return `
+    <div class="admin-pricing-row">
+      <input data-pricing-size value="${escapeHtml(pricing.size)}" placeholder="500g">
+      <input data-pricing-price value="${escapeHtml(pricing.price)}" placeholder="Rs. 550">
+      <button type="button" data-remove-pricing aria-label="Remove price">-</button>
+    </div>
+  `;
+}
+
+function renderAdminPricingField(pricing) {
+  const rows = pricing && pricing.length ? pricing : [""];
+
+  return `
+    <div class="admin-pricing-field">
+      <span>Size Prices</span>
+      <div class="admin-pricing-rows">
+        ${rows.map((line) => renderAdminPricingRow(line)).join("")}
+      </div>
+      <button type="button" class="admin-add-price" data-add-pricing>Add Size Price</button>
+    </div>
+  `;
+}
+
+function getPricingFromField(field) {
+  if (!field) return [];
+
+  return [...field.querySelectorAll(".admin-pricing-row")]
+    .map((row) => {
+      const size = row.querySelector("[data-pricing-size]")?.value.trim() || "";
+      const price = row.querySelector("[data-pricing-price]")?.value.trim() || "";
+
+      if (size && price) return `${size} - ${price}`;
+      return price || size;
+    })
+    .filter(Boolean);
+}
+
 function renderSizeChoices(target, items) {
   if (!target) return;
   target.innerHTML = `
@@ -418,8 +504,7 @@ function renderProductPage() {
   const title = document.querySelector("#productTitle");
   if (!title) return;
 
-  const params = new URLSearchParams(window.location.search);
-  const slug = params.get("item") || "black-forest";
+  const slug = getProductSlugFromLocation();
   const allProducts = getAllProducts();
   const product = allProducts[slug] || allProducts["black-forest"];
   activeProductSlug = slug;
@@ -431,7 +516,7 @@ function renderProductPage() {
   document.title = `${product.title} | The Cake Theory`;
   document.querySelector("#productCategory").textContent = product.category;
   title.textContent = product.title;
-  document.querySelector("#productMainPrice").textContent = product.price;
+  document.querySelector("#productMainPrice").textContent = getMinimumDisplayPrice(product);
   renderSelectOptions(document.querySelector("#productSize"), product.pricing);
   renderSizeChoices(document.querySelector("#productSizeChoices"), product.pricing);
   renderList(document.querySelector("#productIngredients"), product.ingredients);
@@ -539,6 +624,29 @@ if (adminLogout) {
   });
 }
 
+document.addEventListener("click", (event) => {
+  const addPricingButton = event.target.closest("[data-add-pricing]");
+  const removePricingButton = event.target.closest("[data-remove-pricing]");
+
+  if (addPricingButton) {
+    const field = addPricingButton.closest(".admin-pricing-field");
+    field.querySelector(".admin-pricing-rows").insertAdjacentHTML("beforeend", renderAdminPricingRow());
+  }
+
+  if (removePricingButton) {
+    const rows = removePricingButton.closest(".admin-pricing-rows");
+    const row = removePricingButton.closest(".admin-pricing-row");
+
+    if (rows.querySelectorAll(".admin-pricing-row").length > 1) {
+      row.remove();
+    } else {
+      row.querySelectorAll("input").forEach((input) => {
+        input.value = "";
+      });
+    }
+  }
+});
+
 const homeTextForm = document.querySelector("#homeTextForm");
 if (homeTextForm) {
   homeTextForm.addEventListener("submit", (event) => {
@@ -558,6 +666,8 @@ if (newProductForm) {
     const name = document.querySelector("#newProductName").value.trim();
     const category = document.querySelector("#newProductCategory").value.trim();
     const price = document.querySelector("#newProductPrice").value.trim();
+    const pricing = getPricingFromField(document.querySelector("#newProductPricing"));
+    const image = document.querySelector("#newProductImage").value.trim();
     const status = document.querySelector("#newProductStatus").value;
     const ingredients = document.querySelector("#newProductIngredients").value
       .split(",")
@@ -570,15 +680,17 @@ if (newProductForm) {
     data.products[slug] = {
       title: name,
       category,
-      price,
-      pricing: [price],
+      price: pricing.length ? formatPrice(parsePrice(pricing[0])) : price,
+      pricing: pricing.length ? pricing : [price],
       ingredients,
+      image,
       description: `${name} from The Cake Theory.`,
       status
     };
 
     saveAdminData(data);
     newProductForm.reset();
+    document.querySelector("#newProductPricing .admin-pricing-rows").innerHTML = renderAdminPricingRow();
     showToast("New product added.");
     renderAdminPage();
   });
@@ -725,7 +837,7 @@ if (checkoutForm) {
               updateCartCount();
               renderCartPage();
               checkoutForm.reset();
-              checkoutStatus.innerHTML = `<span style="color: #2e7d32; font-weight: bold; display: block; margin-top: 10px;">Order Placed & Paid Successfully! 🎉<br>Order ID: #${result.order_id}<br>Payment ID: ${paymentResponse.razorpay_payment_id}</span>`;
+              checkoutStatus.innerHTML = `<span style="color: #2e7d32; font-weight: bold; display: block; margin-top: 10px;">Order Placed & Paid Successfully!<br>Order ID: #${result.order_id}<br>Payment ID: ${paymentResponse.razorpay_payment_id}</span>`;
               showToast("Payment successful!");
             } else {
               throw new Error(payResult.error || "Failed to update payment.");
@@ -775,6 +887,56 @@ function renderHomeText() {
   block.hidden = false;
 }
 
+function getStartingPriceLabel(product) {
+  const firstPriceOption = product.pricing?.[0] || product.price || "";
+  const parts = firstPriceOption.split("-");
+  const unit = parts.length > 1 ? parts[0].trim() : "";
+  const price = formatPrice(parsePrice(firstPriceOption || product.price));
+
+  return unit ? `Starting @ ${price} / ${unit}` : `Starting @ ${price}`;
+}
+
+function renderHomeProductMenu() {
+  const target = document.querySelector("#homeProductMenu");
+  if (!target) return;
+
+  const allProducts = getAllProducts();
+  const categories = {};
+
+  Object.entries(allProducts).forEach(([slug, product]) => {
+    const category = product.category || "More Items";
+    categories[category] = categories[category] || [];
+    categories[category].push([slug, product]);
+  });
+
+  target.innerHTML = `
+    <div class="mobile-order-menu">
+      ${Object.entries(categories).map(([category, entries]) => `
+        <section class="order-category">
+          <div class="order-category-title">
+            <h3>${category}</h3>
+            <span>${entries.length} items</span>
+          </div>
+          <div class="order-item-list">
+            ${entries.map(([slug, product]) => `
+              <a class="order-item" href="${getProductPageUrl(slug)}">
+                <span class="order-item-thumb">
+                  <img src="${product.image || `/static/assets/${slug}.jpg`}" alt="${product.title}" loading="lazy" onerror="this.parentElement.classList.add('missing-image'); this.remove()">
+                </span>
+                <span>
+                  <strong>${product.title}</strong>
+                  <small>${getStartingPriceLabel(product)}</small>
+                </span>
+                <em>View</em>
+              </a>
+            `).join("")}
+          </div>
+        </section>
+      `).join("")}
+    </div>
+  `;
+}
+
 function renderAdminAddedProducts() {
   const target = document.querySelector("#adminAddedProducts");
   if (!target) return;
@@ -798,7 +960,7 @@ function renderAdminAddedProducts() {
           <h3>${product.title}</h3>
           <p>${product.category}</p>
           <p>${product.price}</p>
-          <a class="primary-link" href="product.html?item=${slug}">View Item</a>
+          <a class="primary-link" href="${getProductPageUrl(slug)}">View Item</a>
         </article>
       `).join("")}
     </div>
@@ -836,7 +998,12 @@ function renderAdminPage() {
           </div>
           <label>
             Price
-            <input name="price" value="${product.price || ""}">
+            <input name="price" value="${escapeHtml(getMinimumDisplayPrice(product))}">
+          </label>
+          ${renderAdminPricingField(product.pricing || [product.price || ""])}
+          <label>
+            Image Path
+            <input name="image" value="${escapeHtml(product.image || "")}" placeholder="/static/assets/${slug}.jpg">
           </label>
           <label>
             Status
@@ -857,10 +1024,15 @@ function renderAdminPage() {
       const slug = form.dataset.adminProduct;
       const formData = new FormData(form);
       const data = getAdminData();
+      const pricing = getPricingFromField(form.querySelector(".admin-pricing-field"));
       data.products = data.products || {};
       data.products[slug] = {
         ...(data.products[slug] || {}),
-        price: formData.get("price"),
+        price: pricing.length ? formatPrice(parsePrice(pricing[0])) : formData.get("price"),
+        pricing: pricing.length
+          ? pricing
+          : [formData.get("price")],
+        image: formData.get("image"),
         status: formData.get("status")
       };
       saveAdminData(data);
@@ -926,9 +1098,9 @@ async function loadBackendOrders(orderList) {
 
         <div style="width: 100%; display: flex; flex-wrap: wrap; gap: 20px;">
           <div style="flex: 1 1 250px;">
-            <p style="margin: 6px 0; font-size: 0.95rem; color: #333;"><strong>📞</strong> ${order.phone}</p>
-            <p style="margin: 6px 0; font-size: 0.95rem; color: #333; line-height: 1.4;"><strong>📍</strong> ${order.address}</p>
-            <p style="margin: 6px 0; font-size: 0.85rem; color: #888;">📅 ${order.created_at}</p>
+            <p style="margin: 6px 0; font-size: 0.95rem; color: #333;"><strong>Phone:</strong> ${order.phone}</p>
+            <p style="margin: 6px 0; font-size: 0.95rem; color: #333; line-height: 1.4;"><strong>Address:</strong> ${order.address}</p>
+            <p style="margin: 6px 0; font-size: 0.85rem; color: #888;"><strong>Date:</strong> ${order.created_at}</p>
           </div>
           
           <div style="flex: 1 1 250px; background: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 10px;">
@@ -978,17 +1150,6 @@ mobileLinks.forEach((link) => {
   });
 });
 
-if (searchTrigger && closeSearch) {
-  searchTrigger.addEventListener("click", () => {
-    body.classList.add("search-open");
-    document.querySelector("#siteSearch").focus();
-  });
-
-  closeSearch.addEventListener("click", () => {
-    body.classList.remove("search-open");
-  });
-}
-
 addButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const product = button.closest(".product-card").dataset.name;
@@ -1026,7 +1187,9 @@ renderTestimonial();
 renderProductPage();
 renderCartPage();
 renderHomeText();
+renderHomeProductMenu();
 renderAdminAddedProducts();
 renderAdminPage();
 updateCartCount();
+
 

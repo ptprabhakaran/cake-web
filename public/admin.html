@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -19,7 +19,6 @@
         <form id="adminLoginForm">
           <input type="password" id="adminPassword" placeholder="Passcode" required>
           <button class="checkout-button" type="submit">Open Admin</button>
-          <small class="admin-hint">Demo passcode: cake123</small>
           <p class="admin-status" id="adminLoginStatus"></p>
         </form>
       </div>
@@ -73,6 +72,21 @@
               Price
               <input type="text" id="newProductPrice" placeholder="Rs. 1200.00" required>
             </label>
+            <div class="admin-pricing-field" id="newProductPricing">
+              <span>Size Prices</span>
+              <div class="admin-pricing-rows">
+                <div class="admin-pricing-row">
+                  <input data-pricing-size placeholder="500g">
+                  <input data-pricing-price placeholder="Rs. 550">
+                  <button type="button" data-remove-pricing aria-label="Remove price">-</button>
+                </div>
+              </div>
+              <button type="button" class="admin-add-price" data-add-pricing>Add Size Price</button>
+            </div>
+            <label>
+              Image Path
+              <input type="text" id="newProductImage" placeholder="/static/assets/lotus-biscoff.jpg">
+            </label>
             <label>
               Status
               <select id="newProductStatus">
@@ -106,5 +120,6 @@
   <script src="/static/js/script.js"></script>
 </body>
 </html>
+
 
 
