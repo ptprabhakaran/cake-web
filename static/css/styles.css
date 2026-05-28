@@ -429,9 +429,22 @@ body.menu-open .mobile-menu {
   align-items: center;
   padding: 96px clamp(18px, 5vw, 74px);
   color: var(--ink);
-  background: linear-gradient(180deg, var(--paper) 0%, var(--cream) 100%);
+  background:
+    linear-gradient(rgba(74, 44, 37, 0.12) 1px, transparent 1px) 0 0 / 42px 42px,
+    linear-gradient(90deg, rgba(74, 44, 37, 0.12) 1px, transparent 1px) 0 0 / 42px 42px,
+    linear-gradient(rgba(200, 79, 104, 0.08) 1px, transparent 1px) 0 0 / 14px 14px,
+    linear-gradient(90deg, rgba(200, 79, 104, 0.08) 1px, transparent 1px) 0 0 / 14px 14px,
+    linear-gradient(180deg, #fffaf4 0%, #f7e8e8 100%);
   position: relative;
   overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 0 44%, rgba(255, 250, 244, 0.72) 76%, rgba(255, 250, 244, 0.92) 100%);
+  pointer-events: none;
 }
 
 .admin-home-text {
