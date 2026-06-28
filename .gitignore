@@ -1,3 +1,10 @@
 .env
+.env.*
+!.env.example
+.venv/
+venv/
 __pycache__/
-*.pyc
+*.py[cod]
+server.err.log
+server.out.log
+*.log
